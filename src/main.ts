@@ -1,12 +1,13 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import helmet from 'helmet';
 import { Logger } from '@nestjs/common';
+import helmet from 'helmet';
+import { ClusterService } from './cluster.service';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
-  
+
   app.setGlobalPrefix('api');
   app.use(helmet());
   app.enableCors();
@@ -16,4 +17,4 @@ async function bootstrap() {
   logger.log(`🚀 Worker ${process.pid} running on port ${port}`);
 }
 
-bootstrap();
+ClusterService.clusterize(bootstrap);
