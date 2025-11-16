@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-// import { User } from './auth/auth.entity';
+import { User } from './auth/users.entity';
+import { ApiKey } from './api-key/api-key.entity';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { ConfigService } from '@nestjs/config';
         username: config.get<string>('DB_USER'),
         password: config.get<string>('DB_PASS'),
         database: config.get<string>('DB_NAME'),
-        entities: [],
+        entities: [User, ApiKey],
         synchronize: true,
       }),
     }),
