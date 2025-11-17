@@ -1,5 +1,5 @@
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { ApiKey } from '../api-key/api-key.entity';
+import { ApiKey } from './api-key.entity'; 
 
 @Entity()
 export class User {

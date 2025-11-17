@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { User } from './auth/users.entity';
-import { ApiKey } from './api-key/api-key.entity';
+import { ApiKey } from './auth/api-key.entity';
 
 @Module({
   imports: [

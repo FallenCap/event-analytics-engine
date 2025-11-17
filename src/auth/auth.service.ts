@@ -1,9 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { randomBytes } from 'crypto';
 import { User } from './users.entity';
-import { ApiKey } from '../api-key/api-key.entity';
+import { ApiKey } from './api-key.entity';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +18,7 @@ export class AuthService {
 
   /**
    * * generate API key
-   * @returns {String}
+   * @returns {Object}
    */
   private generateApiKey(): string {
     return randomBytes(8).toString('hex');
@@ -51,6 +55,48 @@ export class AuthService {
 
       return {
         apiKey: key,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * * Get Api key
+   * @param email
+   * @returns {Object}
+   */
+  async getApikey(email: string): Promise<any> {
+    try {
+      const user = await this.user.findOne({
+        where: { email },
+        select: ['userId'],
+      });
+
+      if (!user) {
+        throw new BadRequestException('Invalid Email, Please Register First');
+      }
+
+      const apiKey = await this.apiKey.findOne({
+        where: {
+          createdBy: { userId: user.userId },
+          revoked: 0,
+          expiresAt: MoreThan(new Date()),
+        },
+        select: {
+          keyId: true,
+          key: true,
+        },
+      });
+
+      if (!apiKey) {
+        throw new NotFoundException(
+          'No valid API Key found (expired or revoked)',
+        );
+      }
+
+      return {
+        apiKey: apiKey.key
       };
     } catch (error) {
       throw error;
