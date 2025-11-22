@@ -96,7 +96,47 @@ export class AuthService {
       }
 
       return {
-        apiKey: apiKey.key
+        apiKey: apiKey.key,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * * Revoke API-key
+   * @param email
+   * @returns {Object}
+   */
+  async revokeKey(email: string): Promise<any> {
+    try {
+      const user = await this.user.findOne({
+        where: { email },
+        select: ['userId'],
+      });
+
+      if (!user) {
+        throw new BadRequestException('Invalid Email, Please Register First');
+      }
+
+      const apiKey = await this.apiKey.findOne({
+        where: {
+          createdBy: { userId: user.userId },
+          revoked: 0,
+          expiresAt: MoreThan(new Date()),
+        },
+      });
+
+      if (!apiKey) {
+        throw new NotFoundException('No active API key found for this user');
+      }
+
+      // 3. Revoke the key
+      apiKey.revoked = 1;
+      await this.apiKey.save(apiKey);
+
+      return {
+        keyId: apiKey.keyId
       };
     } catch (error) {
       throw error;

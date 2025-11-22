@@ -8,7 +8,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
+import { AuthDto } from './dto/auth.dto';
 import { ApiResponse } from '../helper/api.response';
 
 @Controller('auth')
@@ -16,7 +16,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() body: RegisterDto) {
+  async register(@Body() body: AuthDto) {
     try {
       const result = await this.authService.register(body.email);
 
@@ -25,14 +25,14 @@ export class AuthController {
       if (error instanceof HttpException)
         return ApiResponse.badRequest(error.message);
 
-      return ApiResponse.exceptionFailed();
+      return ApiResponse.exceptionFailed(error.message);
     }
   }
 
   @Get('api-key/:email')
-  async getKey(@Param('email') email: string) {
+  async getKey(@Param() params: AuthDto) {
     try {
-      const result = await this.authService.getApikey(email);
+      const result = await this.authService.getApikey(params.email);
 
       return ApiResponse.success(result, 'API Key');
     } catch (error) {
@@ -41,7 +41,25 @@ export class AuthController {
       } else if (error instanceof NotFoundException) {
         return ApiResponse.notFound(error.message);
       } else {
-        return ApiResponse.exceptionFailed();
+        return ApiResponse.exceptionFailed(error.message);
+      }
+    }
+  }
+
+  @Post('revoke')
+  async revokeKey(@Body() body: AuthDto) {
+    try {
+      const result = await this.authService.revokeKey(body.email);
+
+      if (result.keyId)
+        return ApiResponse.success(result, 'Key Revoked Successfully.');
+    } catch (error) {
+      if (error instanceof HttpException) {
+        return ApiResponse.badRequest(error.message);
+      } else if (error instanceof NotFoundException) {
+        return ApiResponse.notFound(error.message);
+      } else {
+        return ApiResponse.exceptionFailed(error.message);
       }
     }
   }
